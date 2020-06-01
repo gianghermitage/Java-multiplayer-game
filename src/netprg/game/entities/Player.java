@@ -19,7 +19,7 @@ public class Player extends Mob {
 	private int scale = 1;
 	private String username;
 	private String colourString;
-
+	private int score;
 	private boolean gameStart = false;
 	private boolean alive = true;
 	private int xa;
@@ -31,6 +31,7 @@ public class Player extends Mob {
 		this.username = username;
 		this.colourString = colourString;
 		setColour(colourString);
+		this.score = 0;
 	}
 
 	@Override
@@ -60,6 +61,7 @@ public class Player extends Mob {
 				Packet02Move packet = new Packet02Move(this.getUsername(), this.x, this.y);
 				packet.writeData(Game.game.socketClient);
 			}
+
 		}
 	}
 
@@ -91,6 +93,18 @@ public class Player extends Mob {
 
 	public void setAlive(boolean status) {
 		this.alive = status;
+	}
+
+	public int getScore() {
+		return this.score;
+	}
+
+	public void setScore(int score) {
+		this.score = score;
+	}
+
+	public synchronized void increaseScore() {
+		this.score = this.score + 1;
 	}
 
 	public boolean isGameStart() {
@@ -154,6 +168,7 @@ public class Player extends Mob {
 				Entity tempObj = level.getEntities().get(i);
 				if (tempObj.getObjectID() == ObjectID.Minion) {
 					if (getBounds().intersects(((Minion) tempObj).getBounds())) {
+						System.out.println(username + " has died");
 						Packet04MinionDespawn packet04MinionDespawn = new Packet04MinionDespawn(
 								((Minion) tempObj).getMinionID());
 						packet04MinionDespawn.writeData(Game.game.socketClient);
