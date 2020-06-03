@@ -23,7 +23,7 @@ public class Game extends Canvas implements Runnable {
 
 	private static final long serialVersionUID = 1L;
 
-	public static final int WIDTH = 160;
+	public static final int WIDTH = 120;
 	public static final int HEIGHT = WIDTH / 9 * 16;
 	public static final int SCALE = 3;
 	public static final String NAME = "Game";
@@ -70,7 +70,7 @@ public class Game extends Canvas implements Runnable {
 		screen = new Screen(WIDTH, HEIGHT, new SpriteSheet("/sprite_sheet.png"));
 		input = new InputHandler(this);
 		level = new Level("/levels/water_test_level.png");
-		player = new PlayerMP(level, 80, 250, input, JOptionPane.showInputDialog(this, "Please enter a username"),
+		player = new PlayerMP(level, WIDTH/2, HEIGHT - 30, input, JOptionPane.showInputDialog(this, "Please enter a username"),
 				JOptionPane.showInputDialog(this, "Choose your color (w, r, g, b)"), null, -1);
 		// level.setPlayer(player);
 		level.addEntity(player);
@@ -176,12 +176,5 @@ public class Game extends Canvas implements Runnable {
 		bs.show();
 	}
 
-	public static long fact(int n) {
-		if (n <= 1) {
-			return 1;
-		} else {
-			return n * fact(n - 1);
-		}
-	}
 
 }

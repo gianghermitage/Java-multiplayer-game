@@ -6,6 +6,7 @@ import netprg.game.Game;
 import netprg.game.gfx.Colours;
 import netprg.game.gfx.Screen;
 import netprg.game.level.Level;
+import netprg.game.net.packets.Packet01Disconnect;
 import netprg.game.net.packets.Packet04MinionDespawn;
 import netprg.game.net.packets.Packet05MinionMove;
 import netprg.game.net.packets.Packet11BulletDespawn;
@@ -39,19 +40,43 @@ public class Minion extends Mob {
 		}
 	}
 
+	@Override
+	public void render(Screen screen) {
+		int xTile = 2;
+		int yTile = 28;
+
+		int modifier = 8 * scale;
+		int xOffset = x - modifier / 2;
+		int yOffset = y - modifier / 2;
+
+		screen.render(xOffset, yOffset, xTile + yTile * 32, colour, scale);
+		screen.render(xOffset + modifier, yOffset, (xTile + 1) + yTile * 32, colour, scale);
+
+		screen.render(xOffset, yOffset + modifier, xTile + (yTile + 1) * 32, colour, scale);
+		screen.render(xOffset + modifier, yOffset + modifier, (xTile + 1) + (yTile + 1) * 32, colour, scale);
+	}
+
+	public int getMinionID() {
+		return this.minionID;
+	}
+
+	public int getMinionSpeed() {
+		return this.speed;
+	}
+	
 	private synchronized void collision() {
 		if (Game.game.player.isGameStart()) {
 			for (int i = 0; i < level.getEntities().size(); i++) {
 				Entity tempObj = level.getEntities().get(i);
-//				if (tempObj.getObjectID() == ObjectID.Player && ((Player) tempObj).isAlive()
-//						&& ((Player) tempObj).isGameStart()) {
-//					if (getBounds().intersects(((Player) tempObj).getBounds())) {
-//						Packet04MinionDespawn packet04MinionDespawn = new Packet04MinionDespawn(minionID);
-//						packet04MinionDespawn.writeData(Game.game.socketClient);
-//						Packet01Disconnect packet = new Packet01Disconnect(((Player) tempObj).getUsername());
-//						packet.writeData(Game.game.socketClient);
-//					}
-//				}
+	       		if(tempObj.getObjectID() == ObjectID.Player && ((Player)tempObj).isAlive() && ((Player)tempObj).isGameStart() ) {
+	       			if(getBounds().intersects(((Player)tempObj).getBounds())) {
+						System.out.println(((Player)tempObj).getUsername() + " has died");
+	       				Packet04MinionDespawn packet04MinionDespawn = new Packet04MinionDespawn(minionID);
+	       	    		packet04MinionDespawn.writeData(Game.game.socketClient);
+	       	    		Packet01Disconnect packet = new Packet01Disconnect(((Player)tempObj).getUsername());
+	       	    		packet.writeData(Game.game.socketClient);
+	       			}
+	       		}
 				if (tempObj.getObjectID() == ObjectID.Bullet) {
 					if (getBounds().intersects(((Bullet) tempObj).getBounds())) {
 						increaseScore(((Bullet) tempObj).getBulletID());
@@ -76,30 +101,6 @@ public class Minion extends Mob {
 				}
 			}
 		}
-	}
-
-	@Override
-	public void render(Screen screen) {
-		int xTile = 2;
-		int yTile = 28;
-
-		int modifier = 8 * scale;
-		int xOffset = x - modifier / 2;
-		int yOffset = y - modifier / 2;
-
-		screen.render(xOffset, yOffset, xTile + yTile * 32, colour, scale);
-		screen.render(xOffset + modifier, yOffset, (xTile + 1) + yTile * 32, colour, scale);
-
-		screen.render(xOffset, yOffset + modifier, xTile + (yTile + 1) * 32, colour, scale);
-		screen.render(xOffset + modifier, yOffset + modifier, (xTile + 1) + (yTile + 1) * 32, colour, scale);
-	}
-
-	public int getMinionID() {
-		return this.minionID;
-	}
-
-	public int getMinionSpeed() {
-		return this.speed;
 	}
 
 }

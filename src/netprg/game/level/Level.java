@@ -101,15 +101,11 @@ public class Level {
 		}
 	}
 
-	public synchronized List<Entity> getEntities() {
-		return this.entities;
-	}
-
 	public void tick() {
 
 		for (int i = 0; i < entities.size(); i++) {
 			Entity e = entities.get(i);
-			e.tick();
+			if(e != null) e.tick();
 		}
 		if (Game.game.player.isGameStart()) {
 			if (Game.game.socketServer != null) {
@@ -149,7 +145,7 @@ public class Level {
 	public void renderEntities(Screen screen) {
 		for (int i = 0; i < entities.size(); i++) {
 			Entity e = entities.get(i);
-			e.render(screen);
+			if(e != null) e.render(screen);
 		}
 		String score = Integer.toString((Game.game.player.getScore()));
 		Font.render(score, screen, Game.WIDTH - 20 - ((score.length() - 1) / 2 * 8), 10, Game.game.player.getColour(),
@@ -158,35 +154,17 @@ public class Level {
 			Font.render("Game over", screen, Game.WIDTH / 2 - (("Game over".length() - 1) / 2 * 8), Game.HEIGHT / 2,
 					Game.game.player.getColour(), 1);
 	}
+	
+	public synchronized List<Entity> getEntities() {
+		return this.entities;
+	}
 
 	public Tile getTile(int x, int y) {
 		if (0 > x || x >= width || 0 > y || y >= height)
 			return Tile.VOID;
 		return Tile.tiles[tiles[x + y * width]];
 	}
-
-	public synchronized void addEntity(Entity entity) {
-		this.getEntities().add(entity);
-	}
-
-	public synchronized void removePlayerMP(String username) {
-		this.getEntities().remove(getPlayerMP(username));
-	}
-
-	public synchronized void removeMinion(int minionID) {
-		this.getEntities().remove(getMinion(minionID));
-	}
-
-	public PlayerMP getPlayerMP(String username) {
-		for (int i = 0; i < entities.size(); i++) {
-			Entity e = entities.get(i);
-			if (e instanceof PlayerMP && ((PlayerMP) e).getUsername().equals(username)) {
-				return (PlayerMP) e;
-			}
-		}
-		return null;
-	}
-
+	
 	public Minion getMinion(int minionID) {
 		for (int i = 0; i < entities.size(); i++) {
 			Entity e = entities.get(i);
@@ -207,12 +185,30 @@ public class Level {
 		return null;
 	}
 
+	public synchronized void addEntity(Entity entity) {
+		this.getEntities().add(entity);
+	}
+
+	public PlayerMP getPlayerMP(String username) {
+		for (int i = 0; i < entities.size(); i++) {
+			Entity e = entities.get(i);
+			if (e instanceof PlayerMP && ((PlayerMP) e).getUsername().equals(username)) {
+				return (PlayerMP) e;
+			}
+		}
+		return null;
+	}
+
 	public synchronized void movePlayer(String username, int x, int y) {
 		PlayerMP player = getPlayerMP(username);
 		if (player.isAlive()) {
 			player.x = x;
 			player.y = y;
 		}
+	}
+	
+	public synchronized void removePlayerMP(String username) {
+		this.getEntities().remove(getPlayerMP(username));
 	}
 
 	public void increaseScore(String username) {
@@ -222,10 +218,18 @@ public class Level {
 		}
 	}
 
-	public synchronized void moveMinion(int minionID, int x, int y) {
-		Minion minion = getMinion(minionID);
-		minion.x = x;
-		minion.y = y;
+
+	
+	public synchronized void moveBullet(String bulletID, int bulletX, int bulletY) {
+		Bullet bullet = getBullet(bulletID);
+		bullet.x = bulletX;
+		bullet.y = bulletY;
+
+	}
+
+	public synchronized void removeBullet(String bulletID) {
+		this.getEntities().remove(getBullet(bulletID));
+
 	}
 
 	public synchronized void spawnBullet() {
@@ -238,8 +242,19 @@ public class Level {
 			Packet10BulletSpawn packet10BulletSpawn = new Packet10BulletSpawn(bulletID, tempPlayer.getX() - 1,
 					tempPlayer.getY(), tempPlayer.getColourString());
 			packet10BulletSpawn.writeData(Game.game.socketClient);
-			bulletDelayTick = 30;
+			bulletDelayTick = 10;
 		}
+	}
+	
+	
+	public synchronized void moveMinion(int minionID, int x, int y) {
+		Minion minion = getMinion(minionID);
+		minion.x = x;
+		minion.y = y;
+	}
+	
+	public synchronized void removeMinion(int minionID) {
+		this.getEntities().remove(getMinion(minionID));
 	}
 
 	public synchronized void spawnMinion() {
@@ -248,37 +263,37 @@ public class Level {
 		if (delaySpawnTick == 0) {
 			if (minionTimer <= 600) {
 				Packet03MinionSpawn packet03MinionSpawn = new Packet03MinionSpawn(Game.game.socketServer.getMinionID(),
-						random.nextInt(150), 0, 1);
+						random.nextInt(Game.WIDTH - 10), 0, 1);
 				packet03MinionSpawn.writeData(Game.game.socketClient);
 				delaySpawnTick = 50;
 			}
 			if (minionTimer > 600 && minionTimer <= 1200) {
 				Packet03MinionSpawn packet03MinionSpawn = new Packet03MinionSpawn(Game.game.socketServer.getMinionID(),
-						random.nextInt(150), 0, 1);
+						random.nextInt(Game.WIDTH - 10), 0, 1);
 				packet03MinionSpawn.writeData(Game.game.socketClient);
 				delaySpawnTick = 40;
 			}
 			if (minionTimer > 1200 && minionTimer <= 1800) {
 				Packet03MinionSpawn packet03MinionSpawn = new Packet03MinionSpawn(Game.game.socketServer.getMinionID(),
-						random.nextInt(150), 0, 1);
+						random.nextInt(Game.WIDTH - 10), 0, 1);
 				packet03MinionSpawn.writeData(Game.game.socketClient);
 				delaySpawnTick = 30;
 			}
 			if (minionTimer > 1800 && minionTimer <= 2400) {
 				Packet03MinionSpawn packet03MinionSpawn = new Packet03MinionSpawn(Game.game.socketServer.getMinionID(),
-						random.nextInt(150), 0, random.nextInt(2) + 1);
+						random.nextInt(Game.WIDTH - 10), 0, random.nextInt(2) + 1);
 				packet03MinionSpawn.writeData(Game.game.socketClient);
 				delaySpawnTick = 20;
 			}
 			if (minionTimer > 2400 && minionTimer <= 3600) {
 				Packet03MinionSpawn packet03MinionSpawn = new Packet03MinionSpawn(Game.game.socketServer.getMinionID(),
-						random.nextInt(150), 0, random.nextInt(3) + 1);
+						random.nextInt(Game.WIDTH - 10), 0, random.nextInt(3) + 1);
 				packet03MinionSpawn.writeData(Game.game.socketClient);
 				delaySpawnTick = 10;
 			}
 			if (minionTimer > 3600) {
 				Packet03MinionSpawn packet03MinionSpawn = new Packet03MinionSpawn(Game.game.socketServer.getMinionID(),
-						random.nextInt(150), 0, random.nextInt(3) + 1);
+						random.nextInt(Game.WIDTH - 10), 0, random.nextInt(3) + 1);
 				packet03MinionSpawn.writeData(Game.game.socketClient);
 				delaySpawnTick = 5;
 			}
@@ -287,16 +302,6 @@ public class Level {
 
 	}
 
-	public synchronized void moveBullet(String bulletID, int bulletX, int bulletY) {
-		Bullet bullet = getBullet(bulletID);
-		bullet.x = bulletX;
-		bullet.y = bulletY;
 
-	}
-
-	public synchronized void removeBullet(String bulletID) {
-		this.getEntities().remove(getBullet(bulletID));
-
-	}
 
 }

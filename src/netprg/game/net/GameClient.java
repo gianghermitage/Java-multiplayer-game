@@ -110,17 +110,7 @@ public class GameClient extends Thread {
 
 		}
 	}
-
-	private void handleScoring(Packet20IncreaseScore packet) {
-		this.game.level.increaseScore(packet.getUsername());
-	}
-
-	private void addMinion(Packet03MinionSpawn packet) {
-		Minion minion = new Minion(game.level, ObjectID.Minion, packet.getMinionID(), packet.getMinionX(),
-				packet.getMinionY(), packet.getMinionSpeed());
-		game.level.addEntity(minion);
-	}
-
+	
 	public void sendData(byte[] data) {
 		if (!game.isApplet) {
 			DatagramPacket packet = new DatagramPacket(data, data.length, ipAddress, 1331);
@@ -131,7 +121,7 @@ public class GameClient extends Thread {
 			}
 		}
 	}
-
+	
 	private void handleLogin(Packet00Login packet, InetAddress address, int port) {
 		System.out.println(
 				"[" + address.getHostAddress() + ":" + port + "] " + packet.getUsername() + " has joined the game...");
@@ -144,15 +134,29 @@ public class GameClient extends Thread {
 		this.game.level.movePlayer(packet.getUsername(), packet.getX(), packet.getY());
 	}
 
-//    private void handleMinionMove(Packet05MinionMove packet) {
-//		//this.game.level.moveMinion(packet.getMinionID(), packet.getX(), packet.getY());
-//	}
+	private void handleScoring(Packet20IncreaseScore packet) {
+		this.game.level.increaseScore(packet.getUsername());
+	}
+
+	private void addMinion(Packet03MinionSpawn packet) {
+		Minion minion = new Minion(game.level, ObjectID.Minion, packet.getMinionID(), packet.getMinionX(),
+				packet.getMinionY(), packet.getMinionSpeed());
+		game.level.addEntity(minion);
+	}
+
 
 	private void addBullet(Packet10BulletSpawn packet) {
 		Bullet bullet = new Bullet(game.level, ObjectID.Bullet, packet.getBulletID(), packet.getBulletColour(),
 				packet.getBulletX(), packet.getBulletY(), 1);
 		game.level.addEntity(bullet);
 	}
+
+
+//    private void handleMinionMove(Packet05MinionMove packet) {
+//		//this.game.level.moveMinion(packet.getMinionID(), packet.getX(), packet.getY());
+//	}
+
+
 
 //    private void handleBulletMove(Packet12BulletMove packet) {
 //		//this.game.level.moveBullet(packet.getBulletID(), packet.getBulletX(), packet.getBulletY());

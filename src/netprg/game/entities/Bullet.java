@@ -15,6 +15,7 @@ public class Bullet extends Mob {
 	private String colourString;
 	private int scale = 1;
 	private String bulletID;
+	private int speed = 4;
 
 	public Bullet(Level level, ObjectID ID, String bulletID, String colourString, int x, int y, int speed) {
 		super(level, ID, x, y, speed);
@@ -31,31 +32,14 @@ public class Bullet extends Mob {
 	@Override
 	public void tick() {
 		// TODO Auto-generated method stub
-		move(0, -2);
+		move(0, -speed);
 		Packet12BulletMove packet = new Packet12BulletMove(bulletID, x, y);
 		packet.writeData(Game.game.socketClient);
-		// collision();
 		if (y < 0) {
 			Packet11BulletDespawn packet11BulletDespawn = new Packet11BulletDespawn(bulletID);
 			packet11BulletDespawn.writeData(Game.game.socketClient);
 		}
 	}
-
-//	private synchronized void collision() {
-////		for (int i = 0; i < level.getEntities().size(); i++) {
-////			Entity tempObj = level.getEntities().get(i);
-////			if (tempObj.getObjectID() == ObjectID.Minion) {
-////				if (getBounds().intersects(((Minion) tempObj).getBounds())) {
-////					increaseScore();
-////					Packet11BulletDespawn packet11BulletDespawn = new Packet11BulletDespawn(bulletID);
-////					packet11BulletDespawn.writeData(Game.game.socketClient);
-////					Packet04MinionDespawn packet04MinionDespawn = new Packet04MinionDespawn(
-////							((Minion) tempObj).getMinionID());
-////					packet04MinionDespawn.writeData(Game.game.socketClient);
-////				}
-////			}
-////		}
-//	}
 
 	@Override
 	public void render(Screen screen) {
@@ -73,6 +57,15 @@ public class Bullet extends Mob {
 		screen.render(xOffset + modifier, yOffset + modifier, (xTile + 1) + (yTile + 1) * 32, colour, scale);
 	}
 
+
+	public String getBulletID() {
+		return this.bulletID;
+	}
+
+	public String getBulletColourString() {
+		return this.colourString;
+	}
+	
 	public void setColour(String colour) {
 		if (colour.equals("w")) {
 			this.colour = Colours.get(-1, 0, 0, 555);
@@ -85,14 +78,6 @@ public class Bullet extends Mob {
 		} else {
 			this.colour = Colours.get(-1, 0, 0, 050);
 		}
-	}
-
-	public String getBulletID() {
-		return this.bulletID;
-	}
-
-	public String getBulletColourString() {
-		return this.colourString;
 	}
 
 }

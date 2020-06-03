@@ -70,7 +70,7 @@ public class GameServer extends Thread {
 			packet = new Packet00Login(data);
 			System.out.println("[" + address.getHostAddress() + ":" + port + "] "
 					+ ((Packet00Login) packet).getUsername() + " has connected...");
-			PlayerMP player = new PlayerMP(game.level, 100, 100, ((Packet00Login) packet).getUsername(),
+			PlayerMP player = new PlayerMP(game.level, ((Packet00Login) packet).getX(), ((Packet00Login) packet).getY(), ((Packet00Login) packet).getUsername(),
 					((Packet00Login) packet).getColour(), address, port);
 			this.addConnection(player, (Packet00Login) packet);
 			break;
@@ -121,18 +121,26 @@ public class GameServer extends Thread {
 
 		}
 	}
+	
+	public void sendData(byte[] data, InetAddress ipAddress, int port) {
+		if (!game.isApplet) {
 
-	private void handleScoring(Packet20IncreaseScore packet) {
-		PlayerMP tempPlayer = getPlayerMP(packet.getUsername());
-		if (tempPlayer != null) {
-			// update connectedPlayer attr
-			// tempPlayer.increaseScore();
-			// System.out.println(tempPlayer.getUsername() + " " + tempPlayer.getScore());
-
-			packet.writeData(this);
+			DatagramPacket packet = new DatagramPacket(data, data.length, ipAddress, port);
+			try {
+				this.socket.send(packet);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 
+	public void sendDataToAllClients(byte[] data) {
+		for (int i = 0; i < connectedPlayers.size(); i++) {
+			PlayerMP p = connectedPlayers.get(i);
+			sendData(data, p.ipAddress, p.port);
+		}
+	}
+	
 	public void addConnection(PlayerMP player, Packet00Login packet) {
 		boolean alreadyConnected = false;
 		for (int i = 0; i < connectedPlayers.size(); i++) {
@@ -152,8 +160,10 @@ public class GameServer extends Thread {
 
 				// relay to the new player that the currently connect player
 				// exists
-					Packet00Login packetTemp = new Packet00Login(p.getUsername(), p.x, p.y, p.getColourString());
-					sendData(packetTemp.getData(), player.ipAddress, player.port);
+                if(getPlayerMP(p.getUsername()).isAlive()) {
+                	Packet00Login packetTemp = new Packet00Login(p.getUsername(), p.x, p.y,p.getColourString());
+                    sendData(packetTemp.getData(), player.ipAddress, player.port);
+                }
 				// add existing minion to new connected client
 				for (int j = 0; j < minionList.size(); j++) {
 					Minion tempMinion = minionList.get(j);
@@ -181,56 +191,7 @@ public class GameServer extends Thread {
 		// this.connectedPlayers.remove(getPlayerMP(packet.getUsername()));
 		packet.writeData(this);
 	}
-
-	public PlayerMP getPlayerMP(String username) {
-		for (int i = 0; i < connectedPlayers.size(); i++) {
-			PlayerMP player = connectedPlayers.get(i);
-			if (player.getUsername().equals(username)) {
-				return player;
-			}
-		}
-		return null;
-	}
-
-	public Minion getMinion(int minionID) {
-		for (int i = 0; i < minionList.size(); i++) {
-			Minion minion = minionList.get(i);
-			if (minion.getMinionID() == minionID) {
-				return minion;
-			}
-		}
-		return null;
-	}
-
-	public Bullet getBullet(String bulletID) {
-		for (int i = 0; i < bulletList.size(); i++) {
-			Bullet bullet = bulletList.get(i);
-			if (bullet.getBulletID().equals(bulletID)) {
-				return bullet;
-			}
-		}
-		return null;
-	}
-
-	public void sendData(byte[] data, InetAddress ipAddress, int port) {
-		if (!game.isApplet) {
-
-			DatagramPacket packet = new DatagramPacket(data, data.length, ipAddress, port);
-			try {
-				this.socket.send(packet);
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
-	}
-
-	public void sendDataToAllClients(byte[] data) {
-		for (int i = 0; i < connectedPlayers.size(); i++) {
-			PlayerMP p = connectedPlayers.get(i);
-			sendData(data, p.ipAddress, p.port);
-		}
-	}
-
+	
 	private void handleMove(Packet02Move packet) {
 		PlayerMP tempPlayer = getPlayerMP(packet.getUsername());
 
@@ -238,6 +199,17 @@ public class GameServer extends Thread {
 			// update connectedPlayer attr
 			tempPlayer.x = packet.getX();
 			tempPlayer.y = packet.getY();
+			packet.writeData(this);
+		}
+	}
+
+	private void handleScoring(Packet20IncreaseScore packet) {
+		PlayerMP tempPlayer = getPlayerMP(packet.getUsername());
+		if (tempPlayer != null) {
+			// update connectedPlayer attr
+			// tempPlayer.increaseScore();
+			// System.out.println(tempPlayer.getUsername() + " " + tempPlayer.getScore());
+
 			packet.writeData(this);
 		}
 	}
@@ -282,6 +254,36 @@ public class GameServer extends Thread {
 
 	public int getMinionID() {
 		return minionID++;
+	}
+	
+	public PlayerMP getPlayerMP(String username) {
+		for (int i = 0; i < connectedPlayers.size(); i++) {
+			PlayerMP player = connectedPlayers.get(i);
+			if (player.getUsername().equals(username)) {
+				return player;
+			}
+		}
+		return null;
+	}
+
+	public Minion getMinion(int minionID) {
+		for (int i = 0; i < minionList.size(); i++) {
+			Minion minion = minionList.get(i);
+			if (minion.getMinionID() == minionID) {
+				return minion;
+			}
+		}
+		return null;
+	}
+
+	public Bullet getBullet(String bulletID) {
+		for (int i = 0; i < bulletList.size(); i++) {
+			Bullet bullet = bulletList.get(i);
+			if (bullet.getBulletID().equals(bulletID)) {
+				return bullet;
+			}
+		}
+		return null;
 	}
 
 }
