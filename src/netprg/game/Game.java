@@ -70,19 +70,27 @@ public class Game extends Canvas implements Runnable {
 		screen = new Screen(WIDTH, HEIGHT, new SpriteSheet("/sprite_sheet.png"));
 		input = new InputHandler(this);
 		level = new Level("/levels/water_test_level.png");
-		player = new PlayerMP(level, WIDTH/2, HEIGHT - 30, input, JOptionPane.showInputDialog(this, "Please enter a username"),
-				JOptionPane.showInputDialog(this, "Choose your color (w, r, g, b)"), null, -1);
-		// level.setPlayer(player);
-		level.addEntity(player);
+		
 
-		if (!isApplet) {
-			Packet00Login loginPacket = new Packet00Login(player.getUsername(), player.x, player.y,
-					player.getColourString());
-			if (socketServer != null) {
-				socketServer.addConnection((PlayerMP) player, loginPacket);
-			}
+		Packet00Login loginPacket;
+		//if server
+		if (socketServer != null) {
+			player = new PlayerMP(level, WIDTH/2, HEIGHT - 30, input, "server",
+					"w", null, -1);
+			player.setServer(true);
+			loginPacket = new Packet00Login(player.getUsername(), player.x, player.y,player.getColourString(),1);
 			loginPacket.writeData(socketClient);
 		}
+		//if client
+		else {
+			player = new PlayerMP(level, WIDTH/2, HEIGHT - 30, input, JOptionPane.showInputDialog(this, "Please enter a username"),
+					JOptionPane.showInputDialog(this, "Choose your color (w, r, g, b)"), null, -1);
+			player.setServer(false);
+			loginPacket = new Packet00Login(player.getUsername(), player.x, player.y,player.getColourString(),0);
+			loginPacket.writeData(socketClient);
+		}
+		level.addEntity(player);
+
 	}
 
 	public synchronized void start() {

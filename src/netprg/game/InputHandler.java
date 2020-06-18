@@ -3,6 +3,8 @@ package netprg.game;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 
+import netprg.game.net.packets.Packet21Ready;
+
 public class InputHandler implements KeyListener {
 
 	public InputHandler(Game game) {
@@ -51,7 +53,8 @@ public class InputHandler implements KeyListener {
 			right.toggle(true);
 		}
 		if (keyCode == KeyEvent.VK_SPACE) {
-			Game.game.player.setGameStart(true);
+			Packet21Ready packet = new Packet21Ready(Game.game.player.getUsername());
+			packet.writeData(Game.game.socketClient);
 		}
 	}
 

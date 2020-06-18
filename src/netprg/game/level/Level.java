@@ -9,6 +9,8 @@ import java.util.Random;
 
 import javax.imageio.ImageIO;
 
+import com.sun.org.apache.bcel.internal.generic.IfInstruction;
+
 import netprg.game.Game;
 import netprg.game.entities.Bullet;
 import netprg.game.entities.Entity;
@@ -101,17 +103,18 @@ public class Level {
 		}
 	}
 
-	public void tick() {
+	public synchronized void tick() {
 
 		for (int i = 0; i < entities.size(); i++) {
 			Entity e = entities.get(i);
-			if(e != null) e.tick();
+			if (e != null)
+				e.tick();
 		}
 		if (Game.game.player.isGameStart()) {
 			if (Game.game.socketServer != null) {
 				spawnMinion();
 			}
-			if (Game.game.player.isAlive())
+			if (Game.game.player.isAlive() && Game.game.socketServer == null)
 				spawnBullet();
 		}
 
@@ -142,19 +145,27 @@ public class Level {
 		}
 	}
 
-	public void renderEntities(Screen screen) {
+	public synchronized void renderEntities(Screen screen) {
 		for (int i = 0; i < entities.size(); i++) {
 			Entity e = entities.get(i);
-			if(e != null) e.render(screen);
+			if (e != null)
+				e.render(screen);
 		}
 		String score = Integer.toString((Game.game.player.getScore()));
-		Font.render(score, screen, Game.WIDTH - 20 - ((score.length() - 1) / 2 * 8), 10, Game.game.player.getColour(),
-				1);
-		if (!Game.game.player.isAlive())
-			Font.render("Game over", screen, Game.WIDTH / 2 - (("Game over".length() - 1) / 2 * 8), Game.HEIGHT / 2,
+		if (!Game.game.player.isServer()) {
+			Font.render(score, screen, Game.WIDTH - 20 - ((score.length() - 1) / 2 * 8), 10,
 					Game.game.player.getColour(), 1);
+			if (!Game.game.player.isAlive()) {
+				Font.render("Game over", screen, Game.WIDTH / 2 - (("Game over".length() - 1) / 2 * 8), Game.HEIGHT / 2,
+						Game.game.player.getColour(), 1);
+			}
+
+		} else {
+			Font.render("Server", screen, 0, 0, Game.game.player.getColour(), 1);
+		}
+
 	}
-	
+
 	public synchronized List<Entity> getEntities() {
 		return this.entities;
 	}
@@ -164,7 +175,7 @@ public class Level {
 			return Tile.VOID;
 		return Tile.tiles[tiles[x + y * width]];
 	}
-	
+
 	public Minion getMinion(int minionID) {
 		for (int i = 0; i < entities.size(); i++) {
 			Entity e = entities.get(i);
@@ -206,20 +217,25 @@ public class Level {
 			player.y = y;
 		}
 	}
-	
+
 	public synchronized void removePlayerMP(String username) {
 		this.getEntities().remove(getPlayerMP(username));
 	}
 
-	public void increaseScore(String username) {
+	public synchronized void increaseScore(String username) {
 		Player tempPlayer = getPlayerMP(username);
 		if (tempPlayer.isAlive()) {
 			tempPlayer.increaseScore();
 		}
 	}
 
+	public synchronized void playerReady(String username) {
+		Player tempPlayer = getPlayerMP(username);
+		if (tempPlayer.isAlive()) {
+			tempPlayer.setGameStart(true);
+		}
+	}
 
-	
 	public synchronized void moveBullet(String bulletID, int bulletX, int bulletY) {
 		Bullet bullet = getBullet(bulletID);
 		bullet.x = bulletX;
@@ -245,14 +261,13 @@ public class Level {
 			bulletDelayTick = 10;
 		}
 	}
-	
-	
+
 	public synchronized void moveMinion(int minionID, int x, int y) {
 		Minion minion = getMinion(minionID);
 		minion.x = x;
 		minion.y = y;
 	}
-	
+
 	public synchronized void removeMinion(int minionID) {
 		this.getEntities().remove(getMinion(minionID));
 	}
@@ -289,19 +304,17 @@ public class Level {
 				Packet03MinionSpawn packet03MinionSpawn = new Packet03MinionSpawn(Game.game.socketServer.getMinionID(),
 						random.nextInt(Game.WIDTH - 10), 0, random.nextInt(3) + 1);
 				packet03MinionSpawn.writeData(Game.game.socketClient);
-				delaySpawnTick = 10;
+				delaySpawnTick = 20;
 			}
 			if (minionTimer > 3600) {
 				Packet03MinionSpawn packet03MinionSpawn = new Packet03MinionSpawn(Game.game.socketServer.getMinionID(),
 						random.nextInt(Game.WIDTH - 10), 0, random.nextInt(3) + 1);
 				packet03MinionSpawn.writeData(Game.game.socketClient);
-				delaySpawnTick = 5;
+				delaySpawnTick = 10;
 			}
 
 		}
 
 	}
-
-
 
 }

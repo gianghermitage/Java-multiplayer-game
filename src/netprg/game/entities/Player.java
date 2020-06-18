@@ -23,6 +23,7 @@ public class Player extends Mob {
 	private int speed = 1;
 	private boolean gameStart = false;
 	private boolean alive = true;
+	private boolean isServer = false;
 	private int xa;
 	private int ya;
 
@@ -37,7 +38,7 @@ public class Player extends Mob {
 
 	@Override
 	public void tick() {
-		if (alive) {
+		if (alive && !isServer) {
 			xa = 0;
 			ya = 0;
 
@@ -68,7 +69,7 @@ public class Player extends Mob {
 
 	@Override
 	public void render(Screen screen) {
-		if (alive) {
+		if (alive && !isServer) {
 			int xTile = 0;
 			int yTile = 28;
 
@@ -94,6 +95,14 @@ public class Player extends Mob {
 
 	public void setAlive(boolean status) {
 		this.alive = status;
+	}
+	
+	public boolean isServer() {
+		return this.isServer;
+	}
+
+	public void setServer(boolean status) {
+		this.isServer = status;
 	}
 
 	public int getScore() {
@@ -163,22 +172,6 @@ public class Player extends Mob {
 			this.y += -ya;
 		}
 
-		// collision with other object
-//		if (gameStart) {
-//			for (int i = 0; i < level.getEntities().size(); i++) {
-//				Entity tempObj = level.getEntities().get(i);
-//				if (tempObj.getObjectID() == ObjectID.Minion) {
-//					if (getBounds().intersects(((Minion) tempObj).getBounds())) {
-//						System.out.println(username + " has died");
-//						Packet01Disconnect packet = new Packet01Disconnect(username);
-//						packet.writeData(Game.game.socketClient);
-//						Packet04MinionDespawn packet04MinionDespawn = new Packet04MinionDespawn(
-//								((Minion) tempObj).getMinionID());
-//						packet04MinionDespawn.writeData(Game.game.socketClient);
-//
-//					}
-//				}
-//			}
-//		}
+
 	}
 }

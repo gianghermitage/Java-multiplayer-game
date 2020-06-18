@@ -25,6 +25,7 @@ import netprg.game.net.packets.Packet10BulletSpawn;
 import netprg.game.net.packets.Packet11BulletDespawn;
 import netprg.game.net.packets.Packet12BulletMove;
 import netprg.game.net.packets.Packet20IncreaseScore;
+import netprg.game.net.packets.Packet21Ready;
 
 public class GameServer extends Thread {
 
@@ -68,8 +69,8 @@ public class GameServer extends Thread {
 			break;
 		case LOGIN:
 			packet = new Packet00Login(data);
-			System.out.println("[" + address.getHostAddress() + ":" + port + "] "
-					+ ((Packet00Login) packet).getUsername() + " has connected...");
+			//System.out.println("[" + address.getHostAddress() + ":" + port + "] "
+					//+ ((Packet00Login) packet).getUsername() + " has connected...");
 			PlayerMP player = new PlayerMP(game.level, ((Packet00Login) packet).getX(), ((Packet00Login) packet).getY(), ((Packet00Login) packet).getUsername(),
 					((Packet00Login) packet).getColour(), address, port);
 			this.addConnection(player, (Packet00Login) packet);
@@ -118,10 +119,14 @@ public class GameServer extends Thread {
 			packet = new Packet20IncreaseScore(data);
 			this.handleScoring(((Packet20IncreaseScore) packet));
 			break;
-
+		case READY:
+			packet = new Packet21Ready(data);
+			this.handlePlayerReady(((Packet21Ready) packet));
 		}
 	}
 	
+
+
 	public void sendData(byte[] data, InetAddress ipAddress, int port) {
 		if (!game.isApplet) {
 
@@ -146,12 +151,6 @@ public class GameServer extends Thread {
 		for (int i = 0; i < connectedPlayers.size(); i++) {
 			PlayerMP p = connectedPlayers.get(i);
 			if (player.getUsername().equalsIgnoreCase(p.getUsername())) {
-				if (p.ipAddress == null) {
-					p.ipAddress = player.ipAddress;
-				}
-				if (p.port == -1) {
-					p.port = player.port;
-				}
 				alreadyConnected = true;
 			} else {
 				// relay to the current connected player that there is a new
@@ -161,8 +160,17 @@ public class GameServer extends Thread {
 				// relay to the new player that the currently connect player
 				// exists
                 if(getPlayerMP(p.getUsername()).isAlive()) {
-                	Packet00Login packetTemp = new Packet00Login(p.getUsername(), p.x, p.y,p.getColourString());
-                    sendData(packetTemp.getData(), player.ipAddress, player.port);
+                	Packet00Login packetTemp;
+                	if(p.isServer()) {
+                    	packetTemp = new Packet00Login(p.getUsername(), p.x, p.y,p.getColourString(),1);
+        				//System.out.println(p.getUsername() + " is server") ;
+                        sendData(packetTemp.getData(), player.ipAddress, player.port);
+                	}
+                	if(!p.isServer()) {
+                    	packetTemp = new Packet00Login(p.getUsername(), p.x, p.y,p.getColourString(),0);
+        				//System.out.println(p.getUsername() + "is not server" );
+                        sendData(packetTemp.getData(), player.ipAddress, player.port);
+                	}
                 }
 				// add existing minion to new connected client
 				for (int j = 0; j < minionList.size(); j++) {
@@ -178,9 +186,13 @@ public class GameServer extends Thread {
 							tempBullet.getX(), tempBullet.getY(), tempBullet.getBulletColourString());
 					sendData(bulletPacket.getData(), player.ipAddress, player.port);
 				}
+				
 			}
 		}
 		if (!alreadyConnected) {
+			if(packet.getServerStatus() == 1) player.setServer(true);
+			else player.setServer(false);
+			//System.out.println(packet.getServerStatus() + "   " + player.getUsername() + " " + player.isServer() );
 			this.connectedPlayers.add(player);
 		}
 	}
@@ -210,6 +222,14 @@ public class GameServer extends Thread {
 			// tempPlayer.increaseScore();
 			// System.out.println(tempPlayer.getUsername() + " " + tempPlayer.getScore());
 
+			packet.writeData(this);
+		}
+	}
+	
+	private void handlePlayerReady(Packet21Ready packet) {
+		PlayerMP tempPlayer = getPlayerMP(packet.getUsername());
+		if (tempPlayer != null) {
+			tempPlayer.setGameStart(true);
 			packet.writeData(this);
 		}
 	}
@@ -285,5 +305,7 @@ public class GameServer extends Thread {
 		}
 		return null;
 	}
+
+
 
 }

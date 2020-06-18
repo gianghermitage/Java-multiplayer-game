@@ -32,13 +32,16 @@ public class Bullet extends Mob {
 	@Override
 	public void tick() {
 		// TODO Auto-generated method stub
-		move(0, -speed);
-		Packet12BulletMove packet = new Packet12BulletMove(bulletID, x, y);
-		packet.writeData(Game.game.socketClient);
-		if (y < 0) {
-			Packet11BulletDespawn packet11BulletDespawn = new Packet11BulletDespawn(bulletID);
-			packet11BulletDespawn.writeData(Game.game.socketClient);
+		if(Game.game.socketServer != null) {
+			move(0, -speed);
+			Packet12BulletMove packet = new Packet12BulletMove(bulletID, x, y);
+			packet.writeData(Game.game.socketClient);
+			if (y < 0) {
+				Packet11BulletDespawn packet11BulletDespawn = new Packet11BulletDespawn(bulletID);
+				packet11BulletDespawn.writeData(Game.game.socketClient);
+			}
 		}
+
 	}
 
 	@Override

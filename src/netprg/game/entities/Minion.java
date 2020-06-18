@@ -30,13 +30,15 @@ public class Minion extends Mob {
 
 	@Override
 	public void tick() {
-		move(0, speed);
-		Packet05MinionMove packet = new Packet05MinionMove(minionID, x, y);
-		packet.writeData(Game.game.socketClient);
-		collision();
-		if (y > Game.HEIGHT && Game.game.socketServer != null) {
-			Packet04MinionDespawn packet04MinionDespawn = new Packet04MinionDespawn(minionID);
-			packet04MinionDespawn.writeData(Game.game.socketClient);
+		if(Game.game.socketServer != null) {
+			move(0, speed);
+			Packet05MinionMove packet = new Packet05MinionMove(minionID, x, y);
+			packet.writeData(Game.game.socketClient);
+			collision();
+			if (y > Game.HEIGHT && Game.game.socketServer != null) {
+				Packet04MinionDespawn packet04MinionDespawn = new Packet04MinionDespawn(minionID);
+				packet04MinionDespawn.writeData(Game.game.socketClient);
+			}
 		}
 	}
 
@@ -68,7 +70,7 @@ public class Minion extends Mob {
 		if (Game.game.player.isGameStart()) {
 			for (int i = 0; i < level.getEntities().size(); i++) {
 				Entity tempObj = level.getEntities().get(i);
-	       		if(tempObj.getObjectID() == ObjectID.Player && ((Player)tempObj).isAlive() && ((Player)tempObj).isGameStart() ) {
+	       		if(tempObj.getObjectID() == ObjectID.Player && ((Player)tempObj).isAlive() && ((Player)tempObj).isGameStart()  && !((Player)tempObj).isServer() ) {
 	       			if(getBounds().intersects(((Player)tempObj).getBounds())) {
 						System.out.println(((Player)tempObj).getUsername() + " has died");
 	       				Packet04MinionDespawn packet04MinionDespawn = new Packet04MinionDespawn(minionID);
