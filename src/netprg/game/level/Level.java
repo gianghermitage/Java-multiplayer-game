@@ -9,8 +9,6 @@ import java.util.Random;
 
 import javax.imageio.ImageIO;
 
-import com.sun.org.apache.bcel.internal.generic.IfInstruction;
-
 import netprg.game.Game;
 import netprg.game.entities.Bullet;
 import netprg.game.entities.Entity;
@@ -217,13 +215,13 @@ public class Level {
 			player.y = y;
 		}
 	}
-	
+
 	public void handleInput(String username, String direction) {
 		PlayerMP player = getPlayerMP(username);
 		if (player.isAlive()) {
 			player.handleInput(direction);
 		}
-		
+
 	}
 
 	public synchronized void removePlayerMP(String username) {
@@ -246,11 +244,11 @@ public class Level {
 
 	public synchronized void moveBullet(String bulletID, int bulletX, int bulletY) {
 		Bullet bullet = getBullet(bulletID);
-		if(bullet != null) {
+		if (bullet != null) {
 			bullet.x = bulletX;
 			bullet.y = bulletY;
 		}
-	
+
 	}
 
 	public synchronized void removeBullet(String bulletID) {
@@ -264,6 +262,9 @@ public class Level {
 			Player tempPlayer = Game.game.player;
 			String bulletID = tempPlayer.getUsername() + bulletNumber;
 			bulletNumber++;
+			if (bulletNumber > 100) {
+				bulletNumber = 0;
+			}
 			Packet10BulletSpawn packet10BulletSpawn = new Packet10BulletSpawn(bulletID, tempPlayer.getX() - 1,
 					tempPlayer.getY(), tempPlayer.getColourString());
 			packet10BulletSpawn.writeData(Game.game.socketClient);
@@ -283,49 +284,47 @@ public class Level {
 
 	public synchronized void spawnMinion() {
 		delaySpawnTick--;
-		minionTimer++;
+		if (minionTimer <= 3600)
+			minionTimer++;
 		if (delaySpawnTick == 0) {
+			int minionID = Game.game.socketServer.getMinionID();
 			if (minionTimer <= 600) {
-				Packet03MinionSpawn packet03MinionSpawn = new Packet03MinionSpawn(Game.game.socketServer.getMinionID(),
+				Packet03MinionSpawn packet03MinionSpawn = new Packet03MinionSpawn(minionID,
 						random.nextInt(Game.WIDTH - 10), 0, 1);
 				packet03MinionSpawn.writeData(Game.game.socketClient);
 				delaySpawnTick = 50;
 			}
 			if (minionTimer > 600 && minionTimer <= 1200) {
-				Packet03MinionSpawn packet03MinionSpawn = new Packet03MinionSpawn(Game.game.socketServer.getMinionID(),
+				Packet03MinionSpawn packet03MinionSpawn = new Packet03MinionSpawn(minionID,
 						random.nextInt(Game.WIDTH - 10), 0, 1);
 				packet03MinionSpawn.writeData(Game.game.socketClient);
 				delaySpawnTick = 40;
 			}
 			if (minionTimer > 1200 && minionTimer <= 1800) {
-				Packet03MinionSpawn packet03MinionSpawn = new Packet03MinionSpawn(Game.game.socketServer.getMinionID(),
+				Packet03MinionSpawn packet03MinionSpawn = new Packet03MinionSpawn(minionID,
 						random.nextInt(Game.WIDTH - 10), 0, 1);
 				packet03MinionSpawn.writeData(Game.game.socketClient);
 				delaySpawnTick = 30;
 			}
 			if (minionTimer > 1800 && minionTimer <= 2400) {
-				Packet03MinionSpawn packet03MinionSpawn = new Packet03MinionSpawn(Game.game.socketServer.getMinionID(),
+				Packet03MinionSpawn packet03MinionSpawn = new Packet03MinionSpawn(minionID,
 						random.nextInt(Game.WIDTH - 10), 0, random.nextInt(2) + 1);
 				packet03MinionSpawn.writeData(Game.game.socketClient);
 				delaySpawnTick = 20;
 			}
 			if (minionTimer > 2400 && minionTimer <= 3600) {
-				Packet03MinionSpawn packet03MinionSpawn = new Packet03MinionSpawn(Game.game.socketServer.getMinionID(),
+				Packet03MinionSpawn packet03MinionSpawn = new Packet03MinionSpawn(minionID,
 						random.nextInt(Game.WIDTH - 10), 0, random.nextInt(3) + 1);
 				packet03MinionSpawn.writeData(Game.game.socketClient);
 				delaySpawnTick = 10;
 			}
 			if (minionTimer > 3600) {
-				Packet03MinionSpawn packet03MinionSpawn = new Packet03MinionSpawn(Game.game.socketServer.getMinionID(),
+				Packet03MinionSpawn packet03MinionSpawn = new Packet03MinionSpawn(minionID,
 						random.nextInt(Game.WIDTH - 10), 0, random.nextInt(3) + 1);
 				packet03MinionSpawn.writeData(Game.game.socketClient);
 				delaySpawnTick = 5;
 			}
-
 		}
-
 	}
-
-
 
 }

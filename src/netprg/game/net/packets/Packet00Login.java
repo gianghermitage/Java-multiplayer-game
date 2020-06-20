@@ -46,7 +46,7 @@ public class Packet00Login extends Packet {
 	public int getY() {
 		return y;
 	}
-	
+
 	public int getServerStatus() {
 		return isServer;
 	}

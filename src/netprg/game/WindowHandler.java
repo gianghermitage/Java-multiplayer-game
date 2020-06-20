@@ -24,7 +24,6 @@ public class WindowHandler implements WindowListener {
 
 	@Override
 	public void windowClosing(WindowEvent event) {
-		System.out.println(Game.game.player.getUsername() + " has disconnected");
 		Packet01Disconnect packet = new Packet01Disconnect(this.game.player.getUsername());
 		packet.writeData(this.game.socketClient);
 	}

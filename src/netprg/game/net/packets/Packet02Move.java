@@ -5,7 +5,6 @@ public class Packet02Move extends Packet {
 	private String username;
 	private int x, y;
 
-
 	public Packet02Move(byte[] data) {
 		super(02);
 		String[] dataArray = readData(data).split(",");
@@ -38,6 +37,5 @@ public class Packet02Move extends Packet {
 	public int getY() {
 		return this.y;
 	}
-
 
 }

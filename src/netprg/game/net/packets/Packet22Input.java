@@ -5,7 +5,6 @@ public class Packet22Input extends Packet {
 	private String username;
 	private String direction;
 
-
 	public Packet22Input(byte[] data) {
 		super(22);
 		String[] dataArray = readData(data).split(",");

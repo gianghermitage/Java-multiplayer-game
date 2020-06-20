@@ -12,7 +12,6 @@ import netprg.game.Game;
 import netprg.game.entities.Bullet;
 import netprg.game.entities.Minion;
 import netprg.game.entities.ObjectID;
-import netprg.game.entities.Player;
 import netprg.game.entities.PlayerMP;
 import netprg.game.net.packets.Packet;
 import netprg.game.net.packets.Packet.PacketTypes;
@@ -72,13 +71,17 @@ public class GameServer extends Thread {
 			break;
 		case LOGIN:
 			packet = new Packet00Login(data);
-			PlayerMP player = new PlayerMP(game.level, ((Packet00Login) packet).getX(), ((Packet00Login) packet).getY(), ((Packet00Login) packet).getUsername(),
-					((Packet00Login) packet).getColour(), address, port);
+			PlayerMP player = new PlayerMP(game.level, ((Packet00Login) packet).getX(), ((Packet00Login) packet).getY(),
+					((Packet00Login) packet).getUsername(), ((Packet00Login) packet).getColour(), address, port);
 			this.addConnection(player, (Packet00Login) packet);
+			System.out.println("[" + address.getHostAddress() + ":" + port + "] "
+					+ ((Packet00Login) packet).getUsername() + " has connected...");
 			break;
 		case DISCONNECT:
 			packet = new Packet01Disconnect(data);
 			this.removeConnection((Packet01Disconnect) packet);
+			System.out.println("[" + address.getHostAddress() + ":" + port + "] "
+					+ ((Packet01Disconnect) packet).getUsername() + " has disconnected...");
 			break;
 		case MOVE:
 			packet = new Packet02Move(data);
@@ -86,7 +89,9 @@ public class GameServer extends Thread {
 			break;
 		case PLAYERDESPAWN:
 			packet = new Packet23PlayerDespawn(data);
-			this.handlePlayerDespawn((Packet23PlayerDespawn)packet);
+			this.handlePlayerDespawn((Packet23PlayerDespawn) packet);
+			System.out.println("[" + address.getHostAddress() + ":" + port + "] "
+					+ ((Packet23PlayerDespawn) packet).getUsername() + " has died...");
 			break;
 		case MINIONSPAWN:
 			packet = new Packet03MinionSpawn(data);
@@ -128,11 +133,11 @@ public class GameServer extends Thread {
 			break;
 		case INPUT:
 			packet = new Packet22Input(data);
-			this.handleInput(((Packet22Input)packet));
+			this.handleInput(((Packet22Input) packet));
 			break;
 		}
 	}
-	
+
 	public void sendData(byte[] data, InetAddress ipAddress, int port) {
 		if (!game.isApplet) {
 
@@ -151,7 +156,7 @@ public class GameServer extends Thread {
 			sendData(data, p.ipAddress, p.port);
 		}
 	}
-	
+
 	public void addConnection(PlayerMP player, Packet00Login packet) {
 		boolean alreadyConnected = false;
 		for (int i = 0; i < connectedPlayers.size(); i++) {
@@ -165,38 +170,40 @@ public class GameServer extends Thread {
 
 				// relay to the new player that the currently connect player
 				// exists
-                if(getPlayerMP(p.getUsername()).isAlive()) {
-                	Packet00Login packetTemp;
-                	if(p.isServer()) {
-                    	packetTemp = new Packet00Login(p.getUsername(), p.x, p.y,p.getColourString(),1);
-                        sendData(packetTemp.getData(), player.ipAddress, player.port);
-                	}
-                	if(!p.isServer()) {
-                    	packetTemp = new Packet00Login(p.getUsername(), p.x, p.y,p.getColourString(),0);
-                        sendData(packetTemp.getData(), player.ipAddress, player.port);
-                	}
-                }
+				if (getPlayerMP(p.getUsername()).isAlive()) {
+					Packet00Login packetTemp;
+					if (p.isServer()) {
+						packetTemp = new Packet00Login(p.getUsername(), p.x, p.y, p.getColourString(), 1);
+						sendData(packetTemp.getData(), player.ipAddress, player.port);
+					}
+					if (!p.isServer()) {
+						packetTemp = new Packet00Login(p.getUsername(), p.x, p.y, p.getColourString(), 0);
+						sendData(packetTemp.getData(), player.ipAddress, player.port);
+					}
+				}
 			}
 		}
 		// add existing minion to new connected client
 		for (int j = 0; j < minionList.size(); j++) {
 			Minion tempMinion = minionList.get(j);
-			Packet03MinionSpawn minionPacket = new Packet03MinionSpawn(tempMinion.getMinionID(),
-					tempMinion.getX(), tempMinion.getY(), tempMinion.getMinionSpeed());
+			Packet03MinionSpawn minionPacket = new Packet03MinionSpawn(tempMinion.getMinionID(), tempMinion.getX(),
+					tempMinion.getY(), tempMinion.getMinionSpeed());
 			sendData(minionPacket.getData(), player.ipAddress, player.port);
 		}
 		// add existing bullet to new connected client
 		for (int j = 0; j < bulletList.size(); j++) {
 			Bullet tempBullet = bulletList.get(j);
-			Packet10BulletSpawn bulletPacket = new Packet10BulletSpawn(tempBullet.getBulletID(),
-					tempBullet.getX(), tempBullet.getY(), tempBullet.getBulletColourString());
+			Packet10BulletSpawn bulletPacket = new Packet10BulletSpawn(tempBullet.getBulletID(), tempBullet.getX(),
+					tempBullet.getY(), tempBullet.getBulletColourString());
 			sendData(bulletPacket.getData(), player.ipAddress, player.port);
 
 		}
-		//add newly connected player to server player list
+		// add newly connected player to server player list
 		if (!alreadyConnected) {
-			if(packet.getServerStatus() == 1) player.setServer(true);
-			else player.setServer(false);
+			if (packet.getServerStatus() == 1)
+				player.setServer(true);
+			else
+				player.setServer(false);
 			this.connectedPlayers.add(player);
 		}
 	}
@@ -207,37 +214,37 @@ public class GameServer extends Thread {
 		connectedPlayers.remove(p);
 		packet.writeData(this);
 	}
-	
+
 	private void handlePlayerDespawn(Packet23PlayerDespawn packet) {
 		PlayerMP p = getPlayerMP(packet.getUsername());
 		p.setAlive(false);
 		packet.writeData(this);
 	}
-	
+
 	private void handleMove(Packet02Move packet) {
 		PlayerMP tempPlayer = getPlayerMP(packet.getUsername());
-		if(tempPlayer != null) {
+		if (tempPlayer != null) {
 			tempPlayer.x = packet.getX();
 			tempPlayer.y = packet.getY();
 		}
 		packet.writeData(this);
 	}
-	
+
 	private void handleInput(Packet22Input packet) {
 		PlayerMP tempPlayer = getPlayerMP(packet.getUsername());
 		String direction = packet.getDirection();
-		switch(direction) {
+		switch (direction) {
 		case "up":
-			tempPlayer.y --;
+			tempPlayer.y--;
 			break;
 		case "down":
-			tempPlayer.y ++;
+			tempPlayer.y++;
 			break;
 		case "left":
-			tempPlayer.x --;
+			tempPlayer.x--;
 			break;
 		case "right":
-			tempPlayer.x ++;
+			tempPlayer.x++;
 			break;
 		default:
 			break;
@@ -252,7 +259,7 @@ public class GameServer extends Thread {
 			packet.writeData(this);
 		}
 	}
-	
+
 	private void handlePlayerReady(Packet21Ready packet) {
 		PlayerMP tempPlayer = getPlayerMP(packet.getUsername());
 		if (tempPlayer != null) {
@@ -302,9 +309,13 @@ public class GameServer extends Thread {
 	}
 
 	public int getMinionID() {
-		return minionID++;
+		minionID++;
+		if (minionID > 100) {
+			minionID = 0;
+		}
+		return minionID;
 	}
-	
+
 	public PlayerMP getPlayerMP(String username) {
 		for (int i = 0; i < connectedPlayers.size(); i++) {
 			PlayerMP player = connectedPlayers.get(i);
@@ -334,7 +345,5 @@ public class GameServer extends Thread {
 		}
 		return null;
 	}
-
-
 
 }

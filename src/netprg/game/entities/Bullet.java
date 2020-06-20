@@ -32,7 +32,7 @@ public class Bullet extends Mob {
 	@Override
 	public void tick() {
 		// TODO Auto-generated method stub
-		if(Game.game.socketServer != null) {
+		if (Game.game.socketServer != null) {
 			move(0, -speed);
 			Packet12BulletMove packet = new Packet12BulletMove(bulletID, x, y);
 			packet.writeData(Game.game.socketClient);
@@ -60,7 +60,6 @@ public class Bullet extends Mob {
 		screen.render(xOffset + modifier, yOffset + modifier, (xTile + 1) + (yTile + 1) * 32, colour, scale);
 	}
 
-
 	public String getBulletID() {
 		return this.bulletID;
 	}
@@ -68,7 +67,7 @@ public class Bullet extends Mob {
 	public String getBulletColourString() {
 		return this.colourString;
 	}
-	
+
 	public void setColour(String colour) {
 		if (colour.equals("w")) {
 			this.colour = Colours.get(-1, 0, 0, 555);

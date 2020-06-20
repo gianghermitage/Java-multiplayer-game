@@ -8,11 +8,7 @@ import netprg.game.gfx.Colours;
 import netprg.game.gfx.Font;
 import netprg.game.gfx.Screen;
 import netprg.game.level.Level;
-import netprg.game.net.GameClient;
-import netprg.game.net.packets.Packet;
-import netprg.game.net.packets.Packet01Disconnect;
 import netprg.game.net.packets.Packet02Move;
-import netprg.game.net.packets.Packet04MinionDespawn;
 import netprg.game.net.packets.Packet22Input;
 
 public class Player extends Mob {
@@ -34,8 +30,11 @@ public class Player extends Mob {
 		super(level, ObjectID.Player, x, y, 1);
 		this.input = input;
 		this.username = username;
-		this.colourString = colourString;
-		setColour(colourString);
+		if (colourString == null)
+			this.colourString = "g";
+		else
+			this.colourString = colourString;
+		setColour(this.colourString);
 		this.score = 0;
 	}
 
@@ -46,7 +45,7 @@ public class Player extends Mob {
 			ya = 0;
 			if (input != null) {
 				if (input.up.isPressed()) {
-					Packet22Input packet  = new Packet22Input(username, "up");
+					Packet22Input packet = new Packet22Input(username, "up");
 					packet.writeData(Game.game.socketClient);
 
 				}
@@ -56,12 +55,12 @@ public class Player extends Mob {
 
 				}
 				if (input.left.isPressed()) {
-					Packet22Input packet  = new Packet22Input(username, "left");
+					Packet22Input packet = new Packet22Input(username, "left");
 					packet.writeData(Game.game.socketClient);
 
 				}
 				if (input.right.isPressed()) {
-					Packet22Input packet  = new Packet22Input(username, "right");
+					Packet22Input packet = new Packet22Input(username, "right");
 					packet.writeData(Game.game.socketClient);
 				}
 			}
@@ -97,7 +96,7 @@ public class Player extends Mob {
 	public void setAlive(boolean status) {
 		this.alive = status;
 	}
-	
+
 	public boolean isServer() {
 		return this.isServer;
 	}
@@ -173,11 +172,11 @@ public class Player extends Mob {
 			this.y += -ya;
 		}
 	}
-	
+
 	public void handleInput(String direction) {
 		xa = 0;
 		ya = 0;
-		switch(direction) {
+		switch (direction) {
 		case "up":
 			ya = -speed;
 			break;

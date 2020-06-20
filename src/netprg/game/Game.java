@@ -72,23 +72,21 @@ public class Game extends Canvas implements Runnable {
 		screen = new Screen(WIDTH, HEIGHT, new SpriteSheet("/sprite_sheet.png"));
 		input = new InputHandler(this);
 		level = new Level("/levels/water_test_level.png");
-		
 
 		Packet00Login loginPacket;
-		//if server
+		// if server
 		if (socketServer != null) {
-			player = new PlayerMP(level, WIDTH/2, HEIGHT - 30, input, "server",
-					"w", null, -1);
+			player = new PlayerMP(level, WIDTH / 2, HEIGHT - 30, input, "server", "w", null, -1);
 			player.setServer(true);
-			loginPacket = new Packet00Login(player.getUsername(), player.x, player.y,player.getColourString(),1);
+			loginPacket = new Packet00Login(player.getUsername(), player.x, player.y, player.getColourString(), 1);
 			loginPacket.writeData(socketClient);
 		}
-		//if client
+		// if client
 		else {
-			player = new PlayerMP(level, WIDTH/2, HEIGHT - 30, input, JOptionPane.showInputDialog(this, "Please enter a username"),
+			player = new PlayerMP(level, WIDTH / 2, HEIGHT - 30, input, JOptionPane.showInputDialog(this, "Username"),
 					JOptionPane.showInputDialog(this, "Choose your color (w, r, g, b)"), null, -1);
 			player.setServer(false);
-			loginPacket = new Packet00Login(player.getUsername(), player.x, player.y,player.getColourString(),0);
+			loginPacket = new Packet00Login(player.getUsername(), player.x, player.y, player.getColourString(), 0);
 			loginPacket.writeData(socketClient);
 		}
 		level.addEntity(player);
@@ -101,27 +99,29 @@ public class Game extends Canvas implements Runnable {
 		thread = new Thread(this, NAME + "_main");
 		thread.start();
 		if (!isApplet) {
-			if (JOptionPane.showConfirmDialog(this, "Do you want to run the server") == 0) {
+			if (JOptionPane.showConfirmDialog(this, "Run server?") == 0) {
 				socketServer = new GameServer(this);
 				socketServer.start();
 				InetAddress inetAddress = null;
-		        try {
+				try {
 					inetAddress = InetAddress.getLocalHost();
 				} catch (UnknownHostException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
-		        if(inetAddress != null) {
-		            System.out.println("IP Address:- " + inetAddress.getHostAddress());
-		        	socketClient = new GameClient(this, inetAddress.getHostAddress());
+				if (inetAddress != null) {
+					System.out.println("Server IP Address:- " + inetAddress.getHostAddress());
+					socketClient = new GameClient(this, inetAddress.getHostAddress());
 					socketClient.start();
-		        }
-			}
-			else {
-	        	socketClient = new GameClient(this, JOptionPane.showInputDialog(this, "Please enter server ip address"));
+				}
+			} else {
+				String hostIP = JOptionPane.showInputDialog(this, "Server IP address (default: localhost)");
+				if (hostIP == null || hostIP.length() == 0)
+					hostIP = "localhost";
+				System.out.println("Client IP Address:- " + hostIP);
+				socketClient = new GameClient(this, hostIP);
 				socketClient.start();
 			}
-
 
 		}
 	}
@@ -200,6 +200,5 @@ public class Game extends Canvas implements Runnable {
 		g.dispose();
 		bs.show();
 	}
-
 
 }

@@ -6,7 +6,6 @@ import netprg.game.Game;
 import netprg.game.gfx.Colours;
 import netprg.game.gfx.Screen;
 import netprg.game.level.Level;
-import netprg.game.net.packets.Packet01Disconnect;
 import netprg.game.net.packets.Packet04MinionDespawn;
 import netprg.game.net.packets.Packet05MinionMove;
 import netprg.game.net.packets.Packet11BulletDespawn;
@@ -31,7 +30,7 @@ public class Minion extends Mob {
 
 	@Override
 	public void tick() {
-		if(Game.game.socketServer != null) {
+		if (Game.game.socketServer != null) {
 			move(0, speed);
 			Packet05MinionMove packet = new Packet05MinionMove(minionID, x, y);
 			packet.writeData(Game.game.socketClient);
@@ -66,20 +65,20 @@ public class Minion extends Mob {
 	public int getMinionSpeed() {
 		return this.speed;
 	}
-	
+
 	private synchronized void collision() {
 		if (Game.game.player.isGameStart()) {
 			for (int i = 0; i < level.getEntities().size(); i++) {
 				Entity tempObj = level.getEntities().get(i);
-	       		if(tempObj.getObjectID() == ObjectID.Player && ((Player)tempObj).isAlive() && ((Player)tempObj).isGameStart()  && !((Player)tempObj).isServer() ) {
-	       			if(getBounds().intersects(((Player)tempObj).getBounds())) {
-						System.out.println(((Player)tempObj).getUsername() + " has died");
-	       				Packet04MinionDespawn packet04MinionDespawn = new Packet04MinionDespawn(minionID);
-	       	    		packet04MinionDespawn.writeData(Game.game.socketClient);
-	       	    		Packet23PlayerDespawn packet = new Packet23PlayerDespawn(((Player)tempObj).getUsername());
-	       	    		packet.writeData(Game.game.socketClient);
-	       			}
-	       		}
+				if (tempObj.getObjectID() == ObjectID.Player && ((Player) tempObj).isAlive()
+						&& ((Player) tempObj).isGameStart() && !((Player) tempObj).isServer()) {
+					if (getBounds().intersects(((Player) tempObj).getBounds())) {
+						Packet04MinionDespawn packet04MinionDespawn = new Packet04MinionDespawn(minionID);
+						packet04MinionDespawn.writeData(Game.game.socketClient);
+						Packet23PlayerDespawn packet = new Packet23PlayerDespawn(((Player) tempObj).getUsername());
+						packet.writeData(Game.game.socketClient);
+					}
+				}
 				if (tempObj.getObjectID() == ObjectID.Bullet) {
 					if (getBounds().intersects(((Bullet) tempObj).getBounds())) {
 						increaseScore(((Bullet) tempObj).getBulletID());
@@ -97,9 +96,9 @@ public class Minion extends Mob {
 	private void increaseScore(String bulletID) {
 		for (int i = 0; i < level.getEntities().size(); i++) {
 			Entity tempObj = level.getEntities().get(i);
-			if(tempObj.getObjectID() == ObjectID.Player) {
-				if (bulletID.contains(((Player)tempObj).getUsername())) {
-					Packet20IncreaseScore packet = new Packet20IncreaseScore(((Player)tempObj).getUsername());
+			if (tempObj.getObjectID() == ObjectID.Player) {
+				if (bulletID.contains(((Player) tempObj).getUsername())) {
+					Packet20IncreaseScore packet = new Packet20IncreaseScore(((Player) tempObj).getUsername());
 					packet.writeData(Game.game.socketClient);
 				}
 			}

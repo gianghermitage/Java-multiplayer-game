@@ -28,5 +28,4 @@ public class PlayerMP extends Player {
 		super.tick();
 	}
 
-
 }
