@@ -217,6 +217,14 @@ public class Level {
 			player.y = y;
 		}
 	}
+	
+	public void handleInput(String username, String direction) {
+		PlayerMP player = getPlayerMP(username);
+		if (player.isAlive()) {
+			player.handleInput(direction);
+		}
+		
+	}
 
 	public synchronized void removePlayerMP(String username) {
 		this.getEntities().remove(getPlayerMP(username));
@@ -238,9 +246,11 @@ public class Level {
 
 	public synchronized void moveBullet(String bulletID, int bulletX, int bulletY) {
 		Bullet bullet = getBullet(bulletID);
-		bullet.x = bulletX;
-		bullet.y = bulletY;
-
+		if(bullet != null) {
+			bullet.x = bulletX;
+			bullet.y = bulletY;
+		}
+	
 	}
 
 	public synchronized void removeBullet(String bulletID) {
@@ -253,7 +263,6 @@ public class Level {
 		if (bulletDelayTick <= 0) {
 			Player tempPlayer = Game.game.player;
 			String bulletID = tempPlayer.getUsername() + bulletNumber;
-			// System.out.println(bulletID);
 			bulletNumber++;
 			Packet10BulletSpawn packet10BulletSpawn = new Packet10BulletSpawn(bulletID, tempPlayer.getX() - 1,
 					tempPlayer.getY(), tempPlayer.getColourString());
@@ -304,17 +313,19 @@ public class Level {
 				Packet03MinionSpawn packet03MinionSpawn = new Packet03MinionSpawn(Game.game.socketServer.getMinionID(),
 						random.nextInt(Game.WIDTH - 10), 0, random.nextInt(3) + 1);
 				packet03MinionSpawn.writeData(Game.game.socketClient);
-				delaySpawnTick = 20;
+				delaySpawnTick = 10;
 			}
 			if (minionTimer > 3600) {
 				Packet03MinionSpawn packet03MinionSpawn = new Packet03MinionSpawn(Game.game.socketServer.getMinionID(),
 						random.nextInt(Game.WIDTH - 10), 0, random.nextInt(3) + 1);
 				packet03MinionSpawn.writeData(Game.game.socketClient);
-				delaySpawnTick = 10;
+				delaySpawnTick = 5;
 			}
 
 		}
 
 	}
+
+
 
 }

@@ -5,7 +5,6 @@ public class Packet02Move extends Packet {
 	private String username;
 	private int x, y;
 
-	private boolean isMoving;
 
 	public Packet02Move(byte[] data) {
 		super(02);
@@ -40,8 +39,5 @@ public class Packet02Move extends Packet {
 		return this.y;
 	}
 
-	public boolean isMoving() {
-		return isMoving;
-	}
 
 }

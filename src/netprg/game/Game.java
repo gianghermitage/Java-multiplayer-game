@@ -6,6 +6,8 @@ import java.awt.Graphics;
 import java.awt.image.BufferStrategy;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
@@ -102,10 +104,25 @@ public class Game extends Canvas implements Runnable {
 			if (JOptionPane.showConfirmDialog(this, "Do you want to run the server") == 0) {
 				socketServer = new GameServer(this);
 				socketServer.start();
+				InetAddress inetAddress = null;
+		        try {
+					inetAddress = InetAddress.getLocalHost();
+				} catch (UnknownHostException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+		        if(inetAddress != null) {
+		            System.out.println("IP Address:- " + inetAddress.getHostAddress());
+		        	socketClient = new GameClient(this, inetAddress.getHostAddress());
+					socketClient.start();
+		        }
+			}
+			else {
+	        	socketClient = new GameClient(this, JOptionPane.showInputDialog(this, "Please enter server ip address"));
+				socketClient.start();
 			}
 
-			socketClient = new GameClient(this, "localhost");
-			socketClient.start();
+
 		}
 	}
 

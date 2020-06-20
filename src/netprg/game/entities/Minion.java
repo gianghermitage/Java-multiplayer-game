@@ -11,6 +11,7 @@ import netprg.game.net.packets.Packet04MinionDespawn;
 import netprg.game.net.packets.Packet05MinionMove;
 import netprg.game.net.packets.Packet11BulletDespawn;
 import netprg.game.net.packets.Packet20IncreaseScore;
+import netprg.game.net.packets.Packet23PlayerDespawn;
 
 public class Minion extends Mob {
 
@@ -75,7 +76,7 @@ public class Minion extends Mob {
 						System.out.println(((Player)tempObj).getUsername() + " has died");
 	       				Packet04MinionDespawn packet04MinionDespawn = new Packet04MinionDespawn(minionID);
 	       	    		packet04MinionDespawn.writeData(Game.game.socketClient);
-	       	    		Packet01Disconnect packet = new Packet01Disconnect(((Player)tempObj).getUsername());
+	       	    		Packet23PlayerDespawn packet = new Packet23PlayerDespawn(((Player)tempObj).getUsername());
 	       	    		packet.writeData(Game.game.socketClient);
 	       			}
 	       		}

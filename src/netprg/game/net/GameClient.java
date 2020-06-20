@@ -25,6 +25,8 @@ import netprg.game.net.packets.Packet11BulletDespawn;
 import netprg.game.net.packets.Packet12BulletMove;
 import netprg.game.net.packets.Packet20IncreaseScore;
 import netprg.game.net.packets.Packet21Ready;
+import netprg.game.net.packets.Packet22Input;
+import netprg.game.net.packets.Packet23PlayerDespawn;
 
 public class GameClient extends Thread {
 
@@ -62,6 +64,7 @@ public class GameClient extends Thread {
 		String message = new String(data).trim();
 		PacketTypes type = Packet.lookupPacket(message.substring(0, 2));
 		Packet packet = null;
+		PlayerMP playerMP = null;
 		switch (type) {
 		default:
 		case INVALID:
@@ -72,19 +75,22 @@ public class GameClient extends Thread {
 			break;
 		case DISCONNECT:
 			packet = new Packet01Disconnect(data);
-//			System.out.println("[" + address.getHostAddress() + ":" + port + "] "
-//					+ ((Packet01Disconnect) packet).getUsername() + " has left the game...");
-			PlayerMP playerMP = game.level.getPlayerMP(((Packet01Disconnect) packet).getUsername());
+			playerMP = game.level.getPlayerMP(((Packet01Disconnect) packet).getUsername());
 			playerMP.setAlive(false);
-			// game.level.getEntities().remove(playerMP);
+			game.level.getEntities().remove(playerMP);
 			break;
 		case MOVE:
 			packet = new Packet02Move(data);
 			handleMove((Packet02Move) packet);
 			break;
+		case PLAYERDESPAWN:
+			packet = new Packet23PlayerDespawn(data);
+			playerMP = game.level.getPlayerMP(((Packet23PlayerDespawn) packet).getUsername());
+			playerMP.setAlive(false);
+			break;
 		case MINIONSPAWN:
 			packet = new Packet03MinionSpawn(data);
-			this.addMinion((Packet03MinionSpawn) packet);
+			addMinion((Packet03MinionSpawn) packet);
 			break;
 		case MINIONDESPAWN:
 			packet = new Packet04MinionDespawn(data);
@@ -92,11 +98,11 @@ public class GameClient extends Thread {
 			break;
         case MINIONMOVE:
         	packet = new Packet05MinionMove(data);
-        	this.handleMinionMove(((Packet05MinionMove) packet));
+        	handleMinionMove(((Packet05MinionMove) packet));
             break;
 		case BULLETSPAWN:
 			packet = new Packet10BulletSpawn(data);
-			this.addBullet((Packet10BulletSpawn) packet);
+			addBullet((Packet10BulletSpawn) packet);
 			break;
 		case BULLETDESPAWN:
 			packet = new Packet11BulletDespawn(data);
@@ -104,20 +110,25 @@ public class GameClient extends Thread {
 			break;
 		case INCREASESCORE:
 			packet = new Packet20IncreaseScore(data);
-			this.handleScoring(((Packet20IncreaseScore) packet));
+			handleScoring(((Packet20IncreaseScore) packet));
 			break;
         case BULLETMOVE:
         	packet = new Packet12BulletMove(data);
-        	this.handleBulletMove(((Packet12BulletMove) packet));
+        	handleBulletMove(((Packet12BulletMove) packet));
             break;
         case READY:
         	packet = new Packet21Ready(data);
-        	this.handlePlayerReady(((Packet21Ready)packet));
+        	handlePlayerReady(((Packet21Ready)packet));
         	break;
+		case INPUT:
+			packet = new Packet22Input(data);
+			handleInput(((Packet22Input)packet));
 
 		}
 	}
 	
+
+
 
 	public void sendData(byte[] data) {
 		if (!game.isApplet) {
@@ -131,8 +142,8 @@ public class GameClient extends Thread {
 	}
 	
 	private void handleLogin(Packet00Login packet, InetAddress address, int port) {
-		System.out.println(
-				"[" + address.getHostAddress() + ":" + port + "] " + packet.getUsername() + " has joined the game...");
+		//System.out.println(
+				//"[" + address.getHostAddress() + ":" + port + "] " + packet.getUsername() + " has joined the game...");
 		PlayerMP player = new PlayerMP(game.level, packet.getX(), packet.getY(), packet.getUsername(),
 				packet.getColour(), address, port);
 		if(packet.getServerStatus() == 1) {
@@ -148,6 +159,11 @@ public class GameClient extends Thread {
 
 	private void handleMove(Packet02Move packet) {
 		this.game.level.movePlayer(packet.getUsername(), packet.getX(),packet.getY());
+	}
+	
+	private void handleInput(Packet22Input packet) {
+		// TODO Auto-generated method stub
+		this.game.level.handleInput(packet.getUsername(),packet.getDirection());
 	}
 
 	private void handleScoring(Packet20IncreaseScore packet) {
@@ -176,8 +192,6 @@ public class GameClient extends Thread {
     private void handleMinionMove(Packet05MinionMove packet) {
 		this.game.level.moveMinion(packet.getMinionID(), packet.getX(), packet.getY());
 	}
-
-
 
     private void handleBulletMove(Packet12BulletMove packet) {
 		this.game.level.moveBullet(packet.getBulletID(), packet.getBulletX(), packet.getBulletY());

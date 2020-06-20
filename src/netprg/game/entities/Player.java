@@ -8,9 +8,12 @@ import netprg.game.gfx.Colours;
 import netprg.game.gfx.Font;
 import netprg.game.gfx.Screen;
 import netprg.game.level.Level;
+import netprg.game.net.GameClient;
+import netprg.game.net.packets.Packet;
 import netprg.game.net.packets.Packet01Disconnect;
 import netprg.game.net.packets.Packet02Move;
 import netprg.game.net.packets.Packet04MinionDespawn;
+import netprg.game.net.packets.Packet22Input;
 
 public class Player extends Mob {
 
@@ -24,8 +27,8 @@ public class Player extends Mob {
 	private boolean gameStart = false;
 	private boolean alive = true;
 	private boolean isServer = false;
-	private int xa;
-	private int ya;
+	private int xa = 0;
+	private int ya = 0;
 
 	public Player(Level level, int x, int y, InputHandler input, String username, String colourString) {
 		super(level, ObjectID.Player, x, y, 1);
@@ -41,29 +44,27 @@ public class Player extends Mob {
 		if (alive && !isServer) {
 			xa = 0;
 			ya = 0;
-
 			if (input != null) {
 				if (input.up.isPressed()) {
-					ya = -speed;
+					Packet22Input packet  = new Packet22Input(username, "up");
+					packet.writeData(Game.game.socketClient);
+
 				}
 				if (input.down.isPressed()) {
-					ya = speed;
+					Packet22Input packet = new Packet22Input(username, "down");
+					packet.writeData(Game.game.socketClient);
+
 				}
 				if (input.left.isPressed()) {
-					xa = -speed;
+					Packet22Input packet  = new Packet22Input(username, "left");
+					packet.writeData(Game.game.socketClient);
+
 				}
 				if (input.right.isPressed()) {
-					xa = speed;
+					Packet22Input packet  = new Packet22Input(username, "right");
+					packet.writeData(Game.game.socketClient);
 				}
-
 			}
-			if (xa != 0 || ya != 0) {
-				move(xa, ya);
-				collision();
-				Packet02Move packet = new Packet02Move(this.getUsername(), this.x, this.y);
-				packet.writeData(Game.game.socketClient);
-			}
-
 		}
 	}
 
@@ -171,7 +172,30 @@ public class Player extends Mob {
 		if (this.y + ya <= 0 || this.y + ya + 8 >= Game.HEIGHT) {
 			this.y += -ya;
 		}
-
-
+	}
+	
+	public void handleInput(String direction) {
+		xa = 0;
+		ya = 0;
+		switch(direction) {
+		case "up":
+			ya = -speed;
+			break;
+		case "down":
+			ya = +speed;
+			break;
+		case "left":
+			xa = -speed;
+			break;
+		case "right":
+			xa = +speed;
+			break;
+		default:
+			break;
+		}
+		move(xa, ya);
+		collision();
+		Packet02Move packet = new Packet02Move(this.getUsername(), this.x, this.y);
+		packet.writeData(Game.game.socketClient);
 	}
 }
